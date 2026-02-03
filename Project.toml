@@ -1,0 +1,13 @@
+name = "AlgebraOfInference"
+uuid = "50322c53-2a43-4ee4-bab1-bd226f44c706"
+authors = ["yl4070 <yl4070@rit.edu> and contributors"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.10.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
