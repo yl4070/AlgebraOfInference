@@ -8,6 +8,7 @@ Specification types for testing.
 struct Spec
     colnames
     formula::Union{Nothing,StatsModels.FormulaTerm}
+    label::AbstractString
 end
 
 struct SpecList
@@ -32,15 +33,22 @@ end
 
 
 
-function specify(args...)
+function specify(args...; label = "")
 
-    if length(args) > 1 && all([arg isa Union{AbstractString,Symbol} for arg in args])
-        Spec([args...], nothing)
+    if length(args) >= 1 && all([arg isa Union{AbstractString,Symbol} for arg in args])
+
+        if label == ""
+            label = join(string.(args), ":")
+        end
+        Spec([args...], nothing, label)
+
     elseif length(args) == 1 
+
         if args[1] isa StatsModels.FormulaTerm
-            Spec([], args[1])
-        elseif args[1] isa Union{AbstractString,Symbol}
-            Spec([args[1]], nothing)
+
+            (label == "") && (label = string(args[1]))
+
+            Spec([], args[1], label)
         else
             @error "Specification is not allowed."
         end
