@@ -35,8 +35,8 @@ tests = testwith(EqualVarianceTTest) + testwith(UnequalVarianceTTest)
 
 Then, p-value can be calculated together:
 ```julia
-tbl = (a = rand(100), b = repeat(1:2, inner = 5), c = rand(100))
-test_specs = specs + tests
+tbl = (a = rand(100), b = repeat(1:2, inner = 50), c = rand(100))
+test_specs = specs * tests
 test_specs(tbl) .|> pvalue
 ```
 
