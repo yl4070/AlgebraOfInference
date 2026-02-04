@@ -1,1 +1,3 @@
 /Manifest*.toml
+/docs
+_test.jl
