@@ -155,6 +155,29 @@ end
 
 
 
+function Base.show(io::IO, t::StatsTest)
+    if length(t.args) == 0
+        println(string(t.name))
+    else
 
+        println(string(t.name), " with args: ", string(t.args))
+    end
+end
 
+function Base.show(io::IO, tl::StatsTestList)
+    for t in tl.tests
+
+        show(io, t)
+    end
+end
+
+function Base.show(io::IO, t::TestSpec)
+    
+    show(io, t.spec)
+    show(io, t.test)
+end
+function Base.show(io::IO, t::TestSpecList)
+    
+    show.(io, t.tests)
+end
 
