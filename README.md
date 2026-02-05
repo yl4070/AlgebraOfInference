@@ -49,7 +49,7 @@ test_specs(tbl) .|> pvalue
 
 ## To-Dos
 
-- [ ] Nicer printing
+- [x] Nicer printing
 - [ ] Nice looking tabel outputs
 - [ ] Optimize code
 - [ ] Import test from R 
