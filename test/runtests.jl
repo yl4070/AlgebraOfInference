@@ -12,7 +12,5 @@ using Test
     sl2 = sl + sp3 
     @test sl2.specs[3] == sp3
 
-    t1 = testwith(:ttest)
-    t2 = testwith(:ttest,  mu = 0, sig = 1)
-    @test length((sl2 * (t1 + t2)).tests) == 6
+    include("hypotests.jl")
 end
