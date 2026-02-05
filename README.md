@@ -16,7 +16,7 @@ The goal of the package is to provide a new interface to `HypothersisTest.jl` an
 + composable testing constructions
 
 
-## Quick Stats
+## Quick Starts
 
 Any data source that supports `Tables.jl` interface will work.
 
