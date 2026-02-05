@@ -131,7 +131,27 @@ end
 
 
 
+function Base.show(io::IO, s::Spec)
 
+    if s.label != ""
+
+        println(s.label)
+    elseif length(s.colnames) == 0
+
+        println(string(s.formula))
+    else
+        println(s.colnames)
+    end
+end
+
+
+function Base.show(io::IO, sl::SpecList)
+
+    for s in sl.specs
+
+        show(io, s)
+    end
+end
 
 
 
