@@ -39,7 +39,7 @@ test_specs = specs * tests
 test_specs(tbl) .|> pvalue
 ```
 
-### Tables outputs
+### Table outputs
 
 Powered by `SummaryTables.jl`, the test outputs can be easily collected into one table:
 
