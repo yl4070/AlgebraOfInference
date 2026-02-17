@@ -39,9 +39,15 @@ test_specs = specs * tests
 test_specs(tbl) .|> pvalue
 ```
 
+### Tables outputs
 
+Powered by `SummaryTables.jl`, the test outputs can be easily collected into one table:
 
+```julia
+test_specs(tbl) |> table
+```
 
+![table](table.png)
 
 
 
@@ -49,11 +55,12 @@ test_specs(tbl) .|> pvalue
 ## To-Dos
 
 - [x] Nicer printing
-- [ ] Nice looking tabel outputs
+- [x] Nice looking tabel outputs
 - [ ] Optimize code
 - [ ] Import test from R 
 - [ ] Refine interface
 - [ ] Documentations
+- [ ] More series testing
 
 
 
