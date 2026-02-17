@@ -1,3 +1,11 @@
+import HypothesisTests
+
+struct TestRes
+    spec
+    res
+end
+
+HypothesisTests.pvalue(t::TestRes) = HypothesisTests.pvalue(t.res)
 
 
 """
@@ -46,6 +54,6 @@ function apply(t::TestSpec, data)
         res = test.name(cols..., test.args...)
     end
 
-    res
+    TestRes(t.spec, res)
 end
 
