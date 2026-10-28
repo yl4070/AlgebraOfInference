@@ -1,9 +1,12 @@
 
 
 """
-    Spec, SpecList
+    Spec
 
-Specification types for testing.
+A specification for testing: either a set of column names or a formula (with
+its grouping variable).
+
+The `+`/`*` algebra that collects these is defined in `composition.jl`.
 """
 struct Spec
     colnames
@@ -11,101 +14,54 @@ struct Spec
     label::AbstractString
 end
 
-struct SpecList
-    specs::Vector{Spec}
-end
-
-"""
-    Base.+
-
-Construct SpecList from Spec
-"""
-+(s1::Spec,s2::Spec) = SpecList([s1, s2])
-+(sl::SpecList, sp::Spec) = begin 
-    push!(sl.specs, sp)
-    sl
-end
-+(sp::Spec, sl::SpecList) = begin 
-    push!(sl.specs, sp)
-    sl
-end
-+(sl1::SpecList, sl2::SpecList) = SpecList([sl1.specs..., sl2.specs...])
-
 
 
 function specify(args...; label = "")
 
-    if length(args) >= 1 && all([arg isa Union{AbstractString,Symbol} for arg in args])
+    if length(args) == 1 && args[1] isa StatsModels.FormulaTerm
 
-        if label == ""
-            label = join(string.(args), ":")
-        end
-        Spec([args...], nothing, label)
+        (label == "") && (label = string(args[1]))
 
-    elseif length(args) == 1 
+        Spec(Symbol[], args[1], label)
 
-        if args[1] isa StatsModels.FormulaTerm
+    elseif !isempty(args) && all(arg -> arg isa Union{AbstractString,Symbol}, args)
 
-            (label == "") && (label = string(args[1]))
+        cols = Symbol[Symbol(arg) for arg in args]
+        (label == "") && (label = join(string.(cols), ":"))
 
-            Spec([], args[1], label)
-        else
-            @error "Specification is not allowed."
-        end
+        Spec(cols, nothing, label)
+
+    elseif isempty(args)
+        throw(ArgumentError("No specification is provided."))
     else
-        @error "No specification is not provided."
+        throw(ArgumentError(
+            "Specification is not allowed: expected column names (Symbol or String) " *
+            "or a single @formula; got $(map(typeof, args))."
+        ))
     end
 end
 
 
 """
-    TestSpec
+    StatsTest
 
-Type that contains the full test specification.
+A test with its callable, positional arguments and keyword arguments.
 """
 struct StatsTest
     name
     args
+    kwargs
 end
-struct StatsTestList
-    tests::Vector{StatsTest}
-end
-+(t1::StatsTest, t2::StatsTest) = StatsTestList([t1, t2])
-+(t::StatsTest, tl::StatsTestList) = begin 
-    push!(tl.tests, t)
-    tl
-end
-+(tl::StatsTestList, t::StatsTest) = begin
-    push!(tl.tests, t)
-    tl
-end
-+(tl1::StatsTestList, tl2::StatsTestList) = begin
-    push!(tl1.tests, tl2.tests)
-    tl1
-end
-    
-Base.length(sl::SpecList) = length(sl.specs)
 
+"""
+    TestSpec
+
+A specification paired with the test to apply to it.
+"""
 struct TestSpec
     spec::Spec
     test::StatsTest
 end
-
-struct TestSpecList
-    tests::Vector{TestSpec}
-end
-
-+(t1::TestSpec, t2::TestSpec) = TestList([t1, t2])
-+(t::TestSpec, tl::TestSpecList) = begin 
-    push!(tl.tests, t)
-    tl
-end
-+(tl::TestSpecList, t::TestSpec) = begin 
-    push!(tl.tests, t)
-    tl
-end
-
-Base.length(sl::StatsTestList) = length(sl.tests)
 
 """
     testwith(:testname, args...)
@@ -115,69 +71,42 @@ Interface to construct tests.
 Provide names of the test or test function.
 """
 
-function testwith(test; args...)
-    
+function testwith(test, args...; kwargs...)
+
     if _iscallable(test)
-        StatsTest(test, args)
+        StatsTest(test, args, (; kwargs...))
     else
-        @error "No proper test is provided"
+        throw(ArgumentError("No proper test is provided: $(test) is not callable."))
     end
 end
-
-
-*(sp::Spec, t::StatsTest) = TestSpecList([TestSpec(sp, t)])
-*(sl::SpecList, t::StatsTest) = TestSpecList([TestSpec(sp, t) for sp in sl.specs])
-*(sl::SpecList, tl::StatsTestList) = TestSpecList(reshape([TestSpec(sp, t) for sp in sl.specs, t in tl.tests], 1, :)[1,:])
 
 
 
 function Base.show(io::IO, s::Spec)
 
-    if s.label != ""
+    if !isempty(s.label)
 
-        println(s.label)
-    elseif length(s.colnames) == 0
+        print(io, s.label)
+    elseif isempty(s.colnames)
 
-        println(string(s.formula))
+        print(io, something(s.formula, ""))
     else
-        println(s.colnames)
+        print(io, join(s.colnames, ":"))
     end
 end
-
-
-function Base.show(io::IO, sl::SpecList)
-
-    for s in sl.specs
-
-        show(io, s)
-    end
-end
-
 
 
 function Base.show(io::IO, t::StatsTest)
-    if length(t.args) == 0
-        println(string(t.name))
-    else
 
-        println(string(t.name), " with args: ", string(t.args))
-    end
-end
-
-function Base.show(io::IO, tl::StatsTestList)
-    for t in tl.tests
-
-        show(io, t)
-    end
+    print(io, string(t.name))
+    isempty(t.args) || print(io, " with args: ", t.args)
+    isempty(t.kwargs) || print(io, " with kwargs: ", t.kwargs)
 end
 
 function Base.show(io::IO, t::TestSpec)
-    
+
     show(io, t.spec)
+    print(io, " | ")
     show(io, t.test)
-end
-function Base.show(io::IO, t::TestSpecList)
-    
-    show.(io, t.tests)
 end
 

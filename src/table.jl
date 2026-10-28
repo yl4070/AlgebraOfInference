@@ -12,7 +12,7 @@ function get_labels(t::TestRes)
 end
 
 
-function table(test_outs::Vector{TestRes})
+function table(test_outs::AbstractVector{<:TestRes})
 
     pvals = pvalue.(test_outs)
     specs = get_labels.(test_outs)

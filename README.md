@@ -26,11 +26,17 @@ To run a test, first specify variable to be used in testing, and multiple specif
 specs = specify(@formula(a ~ b)) + specify(:a, :c)
 ```
 
-The same is hypothesis tests, theorectically, it should work with all tests from `HypothesisTests.jl`. Incorporate more tests. 
+The same holds for the tests themselves: every test constructor exported by
+`HypothesisTests.jl` works through `testwith` (the coverage suite is in
+`test/alltests.jl`).
 
 ```julia
 tests = testwith(EqualVarianceTTest) + testwith(UnequalVarianceTTest)
 ```
+
+Columns may hold matrices (for the multivariate and regression tests), and a
+one-row table supplies scalars (for count-based tests such as
+`FisherExactTest`).
 
 Then, p-value can be calculated together:
 ```julia
