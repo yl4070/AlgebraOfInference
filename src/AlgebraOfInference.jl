@@ -9,7 +9,14 @@ import Base: *, +
 export @formula
 export specify, testwith, table
 
-_iscallable(f) = !isempty(methods(f))
+function _iscallable(f)
+
+    try
+        return !isempty(methods(f))
+    catch
+        return false
+    end
+end
 
 include("specification.jl")
 include("StatsTests.jl")
