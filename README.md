@@ -66,7 +66,7 @@ test_specs(tbl) |> table
 - [ ] Import test from R 
 - [ ] Refine interface
 - [ ] Documentations
-- [ ] More series testing
+- [x] More serious testing
 
 
 
