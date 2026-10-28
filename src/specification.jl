@@ -1,35 +1,18 @@
 
 
 """
-    Spec, SpecList
+    Spec
 
-Specification types for testing.
+A specification for testing: either a set of column names or a formula (with
+its grouping variable).
+
+The `+`/`*` algebra that collects these is defined in `composition.jl`.
 """
 struct Spec
     colnames
     formula::Union{Nothing,StatsModels.FormulaTerm}
     label::AbstractString
 end
-
-struct SpecList
-    specs::Vector{Spec}
-end
-
-"""
-    Base.+
-
-Construct SpecList from Spec
-"""
-+(s1::Spec,s2::Spec) = SpecList([s1, s2])
-+(sl::SpecList, sp::Spec) = begin 
-    push!(sl.specs, sp)
-    sl
-end
-+(sp::Spec, sl::SpecList) = begin 
-    push!(sl.specs, sp)
-    sl
-end
-+(sl1::SpecList, sl2::SpecList) = SpecList([sl1.specs..., sl2.specs...])
 
 
 
@@ -60,59 +43,25 @@ end
 
 
 """
-    TestSpec
+    StatsTest
 
-Type that contains the full test specification.
+A test with its callable, positional arguments and keyword arguments.
 """
 struct StatsTest
     name
     args
     kwargs
 end
-struct StatsTestList
-    tests::Vector{StatsTest}
-end
-+(t1::StatsTest, t2::StatsTest) = StatsTestList([t1, t2])
-+(t::StatsTest, tl::StatsTestList) = begin 
-    push!(tl.tests, t)
-    tl
-end
-+(tl::StatsTestList, t::StatsTest) = begin
-    push!(tl.tests, t)
-    tl
-end
-+(tl1::StatsTestList, tl2::StatsTestList) = begin
-    append!(tl1.tests, tl2.tests)
-    tl1
-end
-    
-Base.length(sl::SpecList) = length(sl.specs)
 
+"""
+    TestSpec
+
+A specification paired with the test to apply to it.
+"""
 struct TestSpec
     spec::Spec
     test::StatsTest
 end
-
-struct TestSpecList
-    tests::Vector{TestSpec}
-end
-
-+(t1::TestSpec, t2::TestSpec) = TestSpecList([t1, t2])
-+(t::TestSpec, tl::TestSpecList) = begin
-    push!(tl.tests, t)
-    tl
-end
-+(tl::TestSpecList, t::TestSpec) = begin
-    push!(tl.tests, t)
-    tl
-end
-+(tl1::TestSpecList, tl2::TestSpecList) = begin
-    append!(tl1.tests, tl2.tests)
-    tl1
-end
-
-Base.length(sl::StatsTestList) = length(sl.tests)
-Base.length(tl::TestSpecList) = length(tl.tests)
 
 """
     testwith(:testname, args...)
@@ -132,26 +81,6 @@ function testwith(test, args...; kwargs...)
 end
 
 
-*(sp::Spec, t::StatsTest) = TestSpecList([TestSpec(sp, t)])
-*(t::StatsTest, sp::Spec) = TestSpecList([TestSpec(sp, t)])
-*(sp::Spec, tl::StatsTestList) = TestSpecList([TestSpec(sp, t) for t in tl.tests])
-*(tl::StatsTestList, sp::Spec) = TestSpecList([TestSpec(sp, t) for t in tl.tests])
-*(sl::SpecList, t::StatsTest) = TestSpecList([TestSpec(sp, t) for sp in sl.specs])
-*(t::StatsTest, sl::SpecList) = TestSpecList([TestSpec(sp, t) for sp in sl.specs])
-*(sl::SpecList, tl::StatsTestList) = TestSpecList(vec([TestSpec(sp, t) for sp in sl.specs, t in tl.tests]))
-*(tl::StatsTestList, sl::SpecList) = TestSpecList(vec([TestSpec(sp, t) for sp in sl.specs, t in tl.tests]))
-
-
-
-function _showlines(io::IO, items)
-
-    for (i, item) in enumerate(items)
-
-        (i > 1) && print(io, '\n')
-        show(io, item)
-    end
-end
-
 
 function Base.show(io::IO, s::Spec)
 
@@ -167,12 +96,6 @@ function Base.show(io::IO, s::Spec)
 end
 
 
-function Base.show(io::IO, sl::SpecList)
-
-    _showlines(io, sl.specs)
-end
-
-
 function Base.show(io::IO, t::StatsTest)
 
     print(io, string(t.name))
@@ -180,19 +103,10 @@ function Base.show(io::IO, t::StatsTest)
     isempty(t.kwargs) || print(io, " with kwargs: ", t.kwargs)
 end
 
-function Base.show(io::IO, tl::StatsTestList)
-
-    _showlines(io, tl.tests)
-end
-
 function Base.show(io::IO, t::TestSpec)
 
     show(io, t.spec)
     print(io, " | ")
     show(io, t.test)
-end
-function Base.show(io::IO, t::TestSpecList)
-
-    _showlines(io, t.tests)
 end
 

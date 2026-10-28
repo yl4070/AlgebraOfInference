@@ -22,7 +22,7 @@ apply tests
 function apply(tl::TestSpecList, data)
 
     [
-        ts(data) for ts in tl.tests
+        ts(data) for ts in tl
     ]
 end
 

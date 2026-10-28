@@ -19,6 +19,7 @@ function _iscallable(f)
 end
 
 include("specification.jl")
+include("composition.jl")
 include("StatsTests.jl")
 include("table.jl")
 

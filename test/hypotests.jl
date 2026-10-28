@@ -78,24 +78,42 @@ end
 @testset "algebra" begin
     s = specify(:x) + specify(:y)
     @test length(s) == 2
+    @test s[1].colnames == [:x]
+    @test [sp.colnames for sp in s] == [[:x], [:y]]
+
+    # Operations are pure: the operands are left untouched.
+    base = specify(:x) + specify(:y)
+    extended = base + specify(:z)
+    @test length(base) == 2
+    @test length(extended) == 3
+    @test length(specify(:z) + base) == 3
 
     t = testwith(EqualVarianceTTest) + testwith(UnequalVarianceTTest)
     @test length(t) == 2
 
     nested = t + (testwith(OneSampleTTest) + testwith(SignTest))
     @test length(nested) == 4
+    @test length(t) == 2
 
+    # Product: one entry per (spec, test) pair, in either operand order.
     ts = s * testwith(EqualVarianceTTest)
     @test length(ts) == 2
-    @test ts.tests[1].spec.colnames == [:x]
-    @test ts.tests[2].spec.colnames == [:y]
+    @test ts[1].spec.colnames == [:x]
+    @test ts[2].spec.colnames == [:y]
 
     both = (specify(:x) + specify(:y)) *
            (testwith(EqualVarianceTTest) + testwith(UnequalVarianceTTest))
     @test length(both) == 4
+    # Column-major, matching the previous reshape-based product.
+    @test [(p.spec.colnames, p.test.name) for p in both] == [
+        ([:x], EqualVarianceTTest),
+        ([:y], EqualVarianceTTest),
+        ([:x], UnequalVarianceTTest),
+        ([:y], UnequalVarianceTTest),
+    ]
 
-    # Products work in either order.
     @test length(testwith(EqualVarianceTTest) * s) == 2
+    @test length((testwith(EqualVarianceTTest) + testwith(SignTest)) * s) == 4
 end
 
 
