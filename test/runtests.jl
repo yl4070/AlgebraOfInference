@@ -14,4 +14,5 @@ using Test
     @test length(sl) == 2
 
     include("hypotests.jl")
+    include("alltests.jl")
 end

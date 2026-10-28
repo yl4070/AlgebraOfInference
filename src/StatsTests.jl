@@ -124,6 +124,10 @@ _as_vector(x, what) = throw(ArgumentError(
 Call a test on the samples produced by a specification, turning an arity
 mismatch (the usual symptom of a formula with the wrong grouping variable)
 into an error that names the test and the number of samples.
+
+A one-row specification supplies its values as scalars rather than
+length-one samples. This is how table-level counts reach tests such as
+`FisherExactTest(a, b, c, d)` that take counts instead of samples.
 """
 function run_test(t::StatsTest, cols)
 
@@ -133,18 +137,26 @@ function run_test(t::StatsTest, cols)
 
     vals = (cols..., t.args...)
 
-    if isempty(t.kwargs) && !applicable(f, vals...)
-        hint = isempty(t.args) ? _applicable_arity(f) : ""
-        throw(ArgumentError(
-            "Test $(string(f)) cannot be applied to $(length(cols)) sample(s) " *
-            "of length(s) $(map(length, cols)) with args $(t.args). " *
-            "Check the specification: a grouping formula that is not categorical " *
-            "usually produces one sample per row. " * hint
-        ))
+    applicable(f, vals...) && return f(vals...; t.kwargs...)
+
+    scalars = _scalar_columns(cols)
+    if scalars !== nothing && applicable(f, (scalars..., t.args...)...)
+        return f(scalars..., t.args...; t.kwargs...)
     end
 
-    f(vals...; t.kwargs...)
+    hint = isempty(t.args) ? _applicable_arity(f) : ""
+    throw(ArgumentError(
+        "Test $(string(f)) cannot be applied to $(length(cols)) sample(s) " *
+        "of length(s) $(map(length, cols)) with args $(t.args). " *
+        "Check the specification: a grouping formula that is not categorical " *
+        "usually produces one sample per row. " * hint
+    ))
 end
+
+
+_scalar_columns(cols) =
+    all(col -> col isa AbstractVector && length(col) == 1, cols) ?
+    Tuple(first(col) for col in cols) : nothing
 
 
 function _applicable_arity(f)
@@ -156,5 +168,12 @@ function _applicable_arity(f)
 
     arities = [n for n in 1:6 if any(probe -> applicable(f, ntuple(_ -> probe, n)...), probes)]
 
-    isempty(arities) ? "" : "The test accepts $(join(arities, " or ")) sample(s)."
+    !isempty(arities) && return "The test accepts $(join(arities, " or ")) sample(s)."
+
+    # Some tests take scalars (a contingency table's counts, say).
+    scalar_probes = Any[1.0, 1, true]
+    arities = [n for n in 1:8 if any(p -> applicable(f, ntuple(_ -> p, n)...), scalar_probes)]
+
+    isempty(arities) ? "" :
+    "The test accepts $(join(arities, " or ")) scalar value(s); use a one-row specification."
 end

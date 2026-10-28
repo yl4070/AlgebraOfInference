@@ -11,8 +11,6 @@ struct Composite{T} <: AbstractVector{T}
     items::Vector{T}
 end
 
-Composite(items::Vector{T}) where {T} = Composite{T}(items)
-
 const Atomic = Union{Spec,StatsTest,TestSpec}
 
 const SpecList = Composite{Spec}
